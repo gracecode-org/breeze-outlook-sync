@@ -1,0 +1,26 @@
+{
+    "LogPath" : "%APPDATA%\\BreezeOutlookSync\\logs",
+    "LogLevel" : 2,
+    "MaxLogSize": 20971520,
+    "MaxLogFiles": 25,
+    "CachePath" : "%APPDATA%\\BreezeOutlookSync\\cache",
+    "Exchange": {
+        "Connection": {
+            "URI": "https://outlook.office365.com/powershell-liveid/",
+            "username": "mydomain.org\\myusername@mydomain.org",
+            "password": "mypassword"
+        },
+        "groupEmailDomain": "mydomain.org"
+    },
+    "Breeze": {
+        "Connection": {
+            "URI": "https://mybreezesite.breezechms.com",
+            "APIKey": "myAPIKey"
+        },
+        "SyncSettings": {
+            "TagsToSync": ["Test Tag1", "Test Tag2"],
+            "TagsToSkip": ["Big Tag", "Another Big Tag"]
+        }
+    }
+
+}
