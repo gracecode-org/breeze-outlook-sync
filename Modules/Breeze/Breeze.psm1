@@ -79,7 +79,7 @@ class Breeze {
             $mergedPersons = [System.Collections.ArrayList]::new()
             foreach ($person in $persons) {
                 # Merge any duplicate persons into a single one.
-                $mergedPersons.Add($this.GetMergedPersonsByEmail($person.GetPrimaryEmail()))
+                $mergedPersons.Add($this.GetMergedPersonsByEmail($person.GetFirstPrimaryEmail()))
             }
             $persons = $mergedPersons.ToArray()
         }
@@ -317,7 +317,7 @@ class Breeze {
             Return true of any of the people in the list has an email address.
         #>
         foreach ($person in $persons) {
-            $email = $person.GetPrimaryEmail()
+            $email = $person.GetFirstPrimaryEmail()
             if ($email -ne "") {
                 return $true                
             }

@@ -12,6 +12,10 @@ using assembly System.Web
 using module ..\Logger\
 
 class Person {
+    # Phone number that accept a dot, a space, a dash, a forward slash, 
+    # between the numbers. Will Accept a 1 or 0 in front. Area Code not necessary
+    static [string] $PHONEREGEX = "((\(\d{3}\)?)|(\d{3}))([\s-./]?)(\d{3})([\s-./]?)(\d{4})"
+
     [int] $id = 0
     [ValidateNotNullOrEmpty()][string] $first
     [ValidateNotNullOrEmpty()][string] $last
@@ -88,9 +92,15 @@ class Person {
             $this.city = [Person]::Trim($personPSObject.details.details.city)
             $this.state = $personPSObject.details.details.state
             $this.zip = $personPSObject.details.details.zip
-            $this.homephone = $personPSObject.details.details.home
-            $this.work = $personPSObject.details.details.work
-            $this.mobile = $personPSObject.details.details.mobile
+            if ($personPSObject.details.details.home -match [Person]::PHONEREGEX) {
+                $this.homephone = $personPSObject.details.details.home
+            }
+            if ($personPSObject.details.details.work -match [Person]::PHONEREGEX){
+                $this.work = $personPSObject.details.details.work
+            }
+            if ($personPSObject.details.details.mobile -match [Person]::PHONEREGEX){
+                $this.mobile = $personPSObject.details.details.mobile
+            }
             $fieldId = $this.GetProfileFieldId("Main", "Comments")
             $this.comments = $personPSObject.details.details."$fieldId"            
         }
@@ -121,14 +131,16 @@ class Person {
             $fieldId = $this.GetProfileFieldId("Contact", "Phone")
             [PSCustomObject[]] $phones = $personPSObject.details."$fieldId"
             foreach ($phone in $phones) {
-                if ($phone.phone_type -eq "home") {
-                    $this.homephone = $phone.phone_number
-                }
-                elseif ($phone.phone_type -eq "mobile") {
-                    $this.mobile = $phone.phone_number
-                }
-                elseif ($phone.phone_type -eq "work") {
-                    $this.work = $phone.phone_number
+                if($phone.phone_number -match [Person]::PHONEREGEX) {
+                    if ($phone.phone_type -eq "home") {
+                        $this.homephone = $phone.phone_number
+                    }
+                    elseif ($phone.phone_type -eq "mobile") {
+                        $this.mobile = $phone.phone_number
+                    }
+                    elseif ($phone.phone_type -eq "work") {
+                        $this.work = $phone.phone_number
+                    }
                 }
             }
             $fieldId = $this.GetProfileFieldId("Main", "Comments")
@@ -172,10 +184,6 @@ class Person {
         else {
             return $this.nickname + " " + $this.last
         }        
-    }
-
-    [string] GetPrimaryEmail() {
-        return $this.email
     }
 
     [string] GetFirstPrimaryEmail() {
@@ -303,10 +311,11 @@ class Person {
         $hs = New-Object 'System.Collections.Generic.HashSet[string]'
         $newPersonsList = New-Object 'System.Collections.Generic.List[PSObject]'
         foreach ($person in $persons) {
-            if ((-not [String]::IsNullOrEmpty($person.GetPrimaryEmail()) -and `
-                    (-not $hs.contains($person.GetPrimaryEmail())))) {
+            $pemail = $person.GetFirstPrimaryEmail()
+            if ((-not [String]::IsNullOrEmpty($pemail) -and `
+                    (-not $hs.contains($pemail)))) {
                 $newPersonsList.Add($person)
-                $hs.Add($person.GetPrimaryEmail())
+                $hs.Add($pemail)
             }
         }
         return $newPersonsList.ToArray()
@@ -341,7 +350,24 @@ class Person {
         return [Person]::GetProfileFieldId($this.ProfileFields, $sectionName, $fieldName)
     }
 
-    
+    static [boolean] ContactEquals([Person] $p, [PSObject] $c) {
+        # Compare a Person to an Exchange Contact
+        if ( $c -eq $null ) { return $false }
+        if ( $p.GetName() -ne $c.Name ) { return $false }
+        if ( $p.GetName() -ne $c.Identity ) { return $false }
+        if ( $p.GetFirstName() -ne $c.FirstName ) { return $false }
+        if ( $p.GetLastName() -ne $c.LastName ) { return $false }
+        if ( $p.GetDisplayName() -ne $c.DisplayName ) { return $false }
+        if ( $p.GetStreetAddress() -ne $c.StreetAddress ) { return $false }
+        if ( $p.GetCity() -ne $c.City ) { return $false }
+        if ( $p.GetState() -ne $c.StateOrProvince ) { return $false }
+        if ( $p.GetZip() -ne $c.PostalCode ) { return $false }
+        if ( $p.GetHomePhone() -ne $c.Phone ) { return $false }
+        if ( $p.GetMobilePhone() -ne $c.MobilePhone ) { return $false }
+        if ( $p.GetWorkPhone() -ne $c.Office ) { return $false }
+        return $true
+    }
+
     [boolean] ContentEquals([Person] $p) {
         $fieldsMatch = $this.id -eq $p.id -and `
             $this.first -eq $p.first -and `
@@ -360,16 +386,6 @@ class Person {
         if (-not $fieldsMatch) {
             return $false
         }
-        # TODO... 
-        # if($this.tagNames.Length -ne $p.tagNames.Length) {
-        #     return false;
-        # }
-
-        # foreach($tagName in $this.tagNames)  {
-        #     if (-not $p -contains $tagname) {
-        #         return false
-        #     }
-        # }
         return $true;
     }
     
@@ -388,11 +404,6 @@ class Person {
         $hashCode = if ($this.state -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.state)) }
         $hashCode = if ($this.zip -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.zip)) }
         $hashCode = if ($this.comments -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.comments)) }
-        # foreach ($tagname in $this.tagNames) {
-        #     $hashCode = [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($tagname))
-        # }
-
-
         return $hashCode
     }
 }

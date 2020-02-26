@@ -191,7 +191,7 @@ class Exchange {
         if($null -eq $this.BreezeCache -or $this.Force -or $this.BreezeCache.HasTagChanged($tag)) {
             $persons = $tag.GetPersons()
             if($persons.Length -ne 0) {
-                [Logger]::Write("Synchronizing tag: " + $tag.GetName() + " with " + $persons.Length + " persons..", $true)
+                [Logger]::Write("Synchronizing tag: " + $tag.GetName() + "(" + $tag.GetId() + ") with " + $persons.Length + " persons..", $true)
                 $notes = "breezetag:" + $tag.GetId()
                 $this.SyncDistributionGroupToBreezePersons($tag.name, $persons, $notes)
                 if($null -ne $this.BreezeCache) {
@@ -231,23 +231,6 @@ class Exchange {
             Update-DistributionGroupMember  -Identity $Using:groupName  -Confirm:$false `
                 -Members $Using:emailList 
         }
-    }
-
-    static [boolean] ContactEquals([Person] $p, [PSObject] $c) {
-        if ( $c -eq $null ) { return $false }
-        if ( $p.GetName() -ne $c.Name ) { return $false }
-        if ( $p.GetName() -ne $c.Identity ) { return $false }
-        if ( $p.GetFirstName() -ne $c.FirstName ) { return $false }
-        if ( $p.GetLastName() -ne $c.LastName ) { return $false }
-        if ( $p.GetDisplayName() -ne $c.DisplayName ) { return $false }
-        if ( $p.GetStreetAddress() -ne $c.StreetAddress ) { return $false }
-        if ( $p.GetCity() -ne $c.City ) { return $false }
-        if ( $p.GetState() -ne $c.StateOrProvince ) { return $false }
-        if ( $p.GetZip() -ne $c.PostalCode ) { return $false }
-        if ( $p.GetHomePhone() -ne $c.Phone ) { return $false }
-        if ( $p.GetMobilePhone() -ne $c.MobilePhone ) { return $false }
-        if ( $p.GetWorkPhone() -ne $c.Office ) { return $false }
-        return $true
     }
 
     [PSObject] SyncContactFromBreezePerson([Person] $person) {
@@ -382,7 +365,7 @@ class Exchange {
                         -City  $Using:city `
                         -StateorProvince  $Using:state `
                         -PostalCode  $Using:zip `
-                        -Phone  $Using:homephone `
+                        -Phone  $Using:workphone `
                         -MobilePhone  $Using:mobilephone `
                         -HomePhone  $Using:homephone `
                         -Notes  $Using:notes `
@@ -391,7 +374,7 @@ class Exchange {
             }
         }
         else {
-            if (-not [Exchange]::ContactEquals($person, $contact)) {
+            if (-not [Person]::ContactEquals($person, $contact)) {
                 [Logger]::Write("Updating contact info: $email")
                 Invoke-Command -Session $this.Session -ScriptBlock { `
                         Set-Contact $Using:email `
@@ -399,7 +382,7 @@ class Exchange {
                         -City  $Using:city `
                         -StateorProvince  $Using:state `
                         -PostalCode  $Using:zip `
-                        -Phone  $Using:homephone `
+                        -Phone  $Using:workphone `
                         -MobilePhone  $Using:mobilephone `
                         -HomePhone  $Using:homephone `
                         -Notes  $Using:notes `

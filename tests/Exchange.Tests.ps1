@@ -16,7 +16,7 @@ using module ..\Modules\Exchange\
 using module .\MockBreeze.psm1
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Config = [Config]::new($here + "\..\config.json").GetConfigObject()
+$Config = [Config]::new( $env:APPDATA + "\BreezeOutlookSync\config.json").GetConfigObject()
 
 class Utility {
     static ValidateContact([Person] $p, [PSObject] $c) {
@@ -120,14 +120,14 @@ Describe "SyncContacts" {
 
             $mailContact = $exchange.SyncContactFromBreezePerson($person)
             $mailContact | Should -not -BeNullOrEmpty
-            $contact = $exchange.GetContactFromEmail($person.GetPrimaryEmail())
+            $contact = $exchange.GetContactFromEmail($person.GetFirstPrimaryEmail())
             [Utility]::ValidateContact($person, $contact)
         }
 
         It "Update the Email" {
             $mailContact = $exchange.SyncContactFromBreezePerson($person)
             $mailContact | Should -not -BeNullOrEmpty
-            $contact = $exchange.GetContactFromEmail($person.GetPrimaryEmail())
+            $contact = $exchange.GetContactFromEmail($person.GetFirstPrimaryEmail())
             [Utility]::ValidateContact($person, $contact)
 
             $person.email = "newemail@yopmail.com"
@@ -144,7 +144,7 @@ Describe "SyncContacts" {
         It "Update the Name" {
             $mailContact = $exchange.SyncContactFromBreezePerson($person)
             $mailContact | Should -not -BeNullOrEmpty
-            $contact = $exchange.GetContactFromEmail($person.GetPrimaryEmail())
+            $contact = $exchange.GetContactFromEmail($person.GetFirstPrimaryEmail())
             [Utility]::ValidateContact($person, $contact)
 
             $person.first = "New"

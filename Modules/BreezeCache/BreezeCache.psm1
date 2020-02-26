@@ -112,7 +112,7 @@ class BreezeCache {
             Hash = $person.HashCode()
             #For diagnostic purposes
             DisplayName = $person.GetDisplayName()
-            PrimayEmail = $person.GetPrimaryEmail()
+            FirstPrimaryEmail = $person.GetFirstPrimaryEmail()
         }
 
         $PersonRefJson = $PersonRef | ConvertTo-Json

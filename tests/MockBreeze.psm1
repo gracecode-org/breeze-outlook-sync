@@ -60,7 +60,7 @@ class MockBreeze : Breeze {
         
         $newPersonsList = New-Object 'System.Collections.Generic.List[Person]'
         foreach ($person in $persons) {
-            if ($person.GetPrimaryEmail() -eq $email) {
+            if ($person.GetFirstPrimaryEmail() -eq $email) {
                 $newPersonsList.Add($person)
             }
         }

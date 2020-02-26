@@ -16,7 +16,7 @@ using module ..\Modules\BreezeCache\
 using module .\MockBreeze.psm1
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Config = [Config]::new($here + "\..\config.json").GetConfigObject()
+$Config = [Config]::new($env:APPDATA + "\BreezeOutlookSync\config.json").GetConfigObject()
 
 function GetTestPersons([Breeze] $breeze, [boolean] $setIds) {
     <#
