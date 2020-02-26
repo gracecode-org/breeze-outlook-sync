@@ -1,6 +1,8 @@
 
 - [Overview](#overview)
 - [How Tags and People are synchronized](#how-tags-and-people-are-synchronized)
+  - [What fields are synchronized?](#what-fields-are-synchronized)
+- [Installation](#installation)
 - [Requirements and Details](#requirements-and-details)
 - [References](#references)
 
@@ -31,18 +33,31 @@ Office 365 and Breeze have a different relationship model:
 - Distribution Groups become orphaned if a tag is deleted or renamed.
   - Periodically look through Outlook/Exchange to remove any unneeded DL's
 
+## What fields are synchronized?
+- First name
+- Nickname
+- Middle name
+- Last name
+- Primary email 
+- Street address
+- City
+- State
+- Zip
+- Home phone
+- Work phone
+- Mobile phone
 
+# Installation
+1.  Download the latest release from the releases page.
+2.  Extract to your Program Files directory (e.g. `C:\Program Files\BreezeOutlookSync`)
+3.  Open a PowerShell window
 
 # Requirements and Details
-
-Use the Exchange remote shell scripts in Powershell to update Exchange distribution lists and contacts.   The Graph API does not yet support this.
-
-1.  Download all tags
-1.  Download all members with those tags
-1.  Format into a CSV file
-1.  Sync all members with contacts
-1.  Sync all Distribution Lists with Tags
-
+This utility has been tested with:
+- Windows 10 and 
+- Windows Server 2016
+- PowerShell 5.1.18362.628
+- Tests require [Pester](https://github.com/pester/Pester)
 
 
 # References
