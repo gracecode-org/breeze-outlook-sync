@@ -36,32 +36,35 @@ class Logger {
     }
 
     hidden [void] Rotate() {
-        $currentSize = (Get-Item ($this.LogFile)).Length
-        # if MaxLogFiles is 1 just keep the original one and let it grow
-        if (-not($this.MaxLogFiles -eq 1)) {
-            if ($currentSize -ge $this.MaxLogSize) {
+        $logFileExists = Test-Path $this.LogFile -PathType Leaf
+        if ($logFileExists -eq $True) {
+            $currentSize = (Get-Item ($this.LogFile)).Length
+            # if MaxLogFiles is 1 just keep the original one and let it grow
+            if (-not($this.MaxLogFiles -eq 1)) {
+                if ($currentSize -ge $this.MaxLogSize) {
 
-                $newLogFileName = $this.LogFileName + (Get-Date -Format 'yyyyMMddHHmmss').ToString() + $this.LogFileExt
+                    $newLogFileName = $this.LogFileName + (Get-Date -Format 'yyyyMMddHHmmss').ToString() + $this.LogFileExt
 
-                Copy-Item -Path $this.LogFile -Destination (Join-Path (Split-Path $this.LogFile) $newLogFileName)
+                    Copy-Item -Path $this.LogFile -Destination (Join-Path (Split-Path $this.LogFile) $newLogFileName)
 
-                Clear-Content $this.LogFile
+                    Clear-Content $this.LogFile
 
-                # if MaxLogFiles is 0 don't delete any old archived log files
-                if (-not($this.MaxLogFiles -eq 0)) {
+                    # if MaxLogFiles is 0 don't delete any old archived log files
+                    if (-not($this.MaxLogFiles -eq 0)) {
 
-                    # set filter to search for archived log files
-                    $archivedLogFileFilter = $this.LogFileName + '??????????????' + $this.LogFileExt
+                        # set filter to search for archived log files
+                        $archivedLogFileFilter = $this.LogFileName + '??????????????' + $this.LogFileExt
 
-                    # get archived log files
-                    $oldLogFiles = Get-Item -Path "$(Join-Path -Path $this.LogPath -ChildPath $archivedLogFileFilter)"
+                        # get archived log files
+                        $oldLogFiles = Get-Item -Path "$(Join-Path -Path $this.LogPath -ChildPath $archivedLogFileFilter)"
 
-                    if ([bool]$oldLogFiles) {
-                        # compare found log files to MaxLogFiles parameter of the log object, and delete oldest until we are
-                        # back to the correct number
-                        if (($oldLogFiles.Count + 1) -gt $this.MaxLogFiles) {
-                            [int]$numTooMany = (($oldLogFiles.Count) + 1) - $this.MaxLogFiles
-                            $oldLogFiles | Sort-Object 'LastWriteTime' | Select-Object -First $numTooMany | Remove-Item
+                        if ([bool]$oldLogFiles) {
+                            # compare found log files to MaxLogFiles parameter of the log object, and delete oldest until we are
+                            # back to the correct number
+                            if (($oldLogFiles.Count + 1) -gt $this.MaxLogFiles) {
+                                [int]$numTooMany = (($oldLogFiles.Count) + 1) - $this.MaxLogFiles
+                                $oldLogFiles | Sort-Object 'LastWriteTime' | Select-Object -First $numTooMany | Remove-Item
+                            }
                         }
                     }
                 }
