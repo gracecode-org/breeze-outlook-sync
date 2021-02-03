@@ -62,6 +62,15 @@ class BreezeCache {
             return $true
         }
 
+        # Check the actual person id's in the tag cache to see if any have changed.
+        # E.g. change a single member in the tag.
+        [int[]] $tagPersonIds = $this.ToPersonIdArray($tag.GetPersons())
+        foreach($cachedTagPersonId in $TagRef.PersonIds) {
+            if(-Not ($cachedTagPersonId -in $tagPersonIds)) {
+                return $true
+            }
+        }
+
         foreach($person in $tag.GetPersons()) {
             if($this.HasPersonChanged($person)) {
                 return $true
@@ -117,6 +126,15 @@ class BreezeCache {
 
         $PersonRefJson = $PersonRef | ConvertTo-Json
         Set-Content -Path $PersonRefFileName -Value $PersonRefJson
+    }
+
+    [int[]] ToPersonIdArray([Object[]] $persons) {
+        [int[]] $personIds = [int[]]::new($persons.length)
+        for($i=0;$i -lt $persons.length;$i++) {
+            $personIds[$i] = $persons[$i].GetId()
+        }
+        return $personIds
+
     }
 
 }

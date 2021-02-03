@@ -390,6 +390,14 @@ Describe "BreezeCache" {
         $breezeCache.HasTagChanged($t2a) | Should -BeTrue
         $breezeCache.HasPersonChanged($p2a) | Should -BeFalse
 
+        # Replace Tag with different person (count is same)
+        $p1a = [Person]::new($TEST_PROFILE_FIELDS, 11111, "Test", "Nick", "Mid", "User", `
+        "testuser@yopmail.com", "(507) 123-9999", "(507) 123-0000", "(507) 123-8888", "TESTING", `
+        "100 Main St", "Rochester", "MN", "55901", @("TEST2"))
+        $t2a = [Tag]::new(2, "TEST2", @($p1a))
+        $breezeCache.HasTagChanged($t2a) | Should -BeTrue
+        $breezeCache.HasPersonChanged($p1a) | Should -BeFalse
+
         # Change a person in one of the tags
         $p1a = [Person]::new($TEST_PROFILE_FIELDS, 11111, "Testx", "Nick", "Mid", "User", `
         "testuser@yopmail.com", "(507) 123-9999", "(507) 123-0000", "(507) 123-8888", "TESTING", `
@@ -421,6 +429,7 @@ Describe "BreezeCache" {
         $breezeCache.HasPersonChanged($p1a) | Should -BeTrue
         $breezeCache.HasTagChanged($t2a) | Should -BeTrue
         $breezeCache.HasPersonChanged($p2) | Should -BeFalse
+
     }
 }
 
