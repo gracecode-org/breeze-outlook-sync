@@ -320,7 +320,6 @@ Describe "Person" {
         "100 Main St", "Rochester", "MN", "55901", @("TEST1", "TEST2"))
         $p1.GetFirstPrimaryEmail() | Should -Be "testuser@yopmail.com"
     }
-}
 
 Describe "BreezeCache" {
     $TEST_PROFILE_FIELDS=[IO.File]::ReadAllText([MockBreeze]::PROFILE_FIELDS_FILE)
@@ -337,11 +336,25 @@ Describe "BreezeCache" {
         $breezeCache.CachePerson($p1)
         $breezeCache.HasPersonChanged($p1) | Should -BeFalse
 
+        # Different First name
         $p1a = [Person]::new($TEST_PROFILE_FIELDS, 12345678, "Testx", "Nick", "Mid", "User", `
         "testuser@yopmail.com", "(507) 123-9999", "(507) 123-0000", "(507) 123-8888", "TESTING", `
         "100 Main St", "Rochester", "MN", "55901", @("TEST3", "TEST", "TEST2"))
 
         $breezeCache.HasPersonChanged($p1a) | Should -BeTrue
+
+        # Different email
+        $p1b = [Person]::new($TEST_PROFILE_FIELDS, 12345678, "Test", "Nick", "Mid", "User", `
+        "testuserA@yopmail.com", "(507) 123-9999", "(507) 123-0000", "(507) 123-8888", "TESTING", `
+        "100 Main St", "Rochester", "MN", "55901", @("TEST3", "TEST", "TEST2"))
+
+        # Null Mobile and different email
+        $p1c = [Person]::new($TEST_PROFILE_FIELDS, 12345678, "Test", "Nick", "Mid", "User", `
+        "changed@yopmail.com", "(507) 123-9999", $null, "(507) 123-8888", "TESTING", `
+        "100 Main St", "Rochester", "MN", "55901", @("TEST3", "TEST", "TEST2"))
+
+        $breezeCache.HasPersonChanged($p1c) | Should -BeTrue
+
 
     }
 

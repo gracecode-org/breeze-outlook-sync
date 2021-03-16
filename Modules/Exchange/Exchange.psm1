@@ -279,6 +279,8 @@ class Exchange {
         $mailContact = $this.GetMailContact($email)
         $contact = $this.GetContact($name)
 
+        [Logger]::Write("Found mailContact: $mailContact", $true)
+        [Logger]::Write("Found contact: $contact", $true)
         
         # If we didn't find a contact or mailcontact, check if there is a UserMailbox
         # if there is, skip

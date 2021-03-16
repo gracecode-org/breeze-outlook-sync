@@ -352,7 +352,7 @@ class Person {
 
     static [boolean] ContactEquals([Person] $p, [PSObject] $c) {
         # Compare a Person to an Exchange Contact
-        if ( $c -eq $null ) { return $false }
+        if ( $null -eq $c ) { return $false }
         if ( $p.GetName() -ne $c.Name ) { return $false }
         if ( $p.GetName() -ne $c.Identity ) { return $false }
         if ( $p.GetFirstName() -ne $c.FirstName ) { return $false }
@@ -393,17 +393,17 @@ class Person {
         [int] $hashCode = $this.id;
         $hashCode = [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.first))
         $hashCode = [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.last))
-        $hashCode = if ($this.nickname -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.nickname)) }
-        $hashCode = if ($this.middle -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.middle)) }
-        $hashCode = if ($this.email -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.email)) }
-        $hashCode = if ($this.homephone -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.homephone)) }
-        $hashCode = if ($this.mobile -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.mobile)) }
-        $hashCode = if ($this.work -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.work)) } 
-        $hashCode = if ($this.streetaddress -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.streetaddress)) }
-        $hashCode = if ($this.city -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.city)) }
-        $hashCode = if ($this.state -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.state)) }
-        $hashCode = if ($this.zip -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.zip)) }
-        $hashCode = if ($this.comments -ne $null) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.comments)) }
+        $hashCode = if ($null -ne $this.nickname) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.nickname)) } else { $hashCode } 
+        $hashCode = if ($null -ne $this.middle) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.middle)) } else { $hashCode } 
+        $hashCode = if ($null -ne $this.email) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.email)) } else { $hashCode } 
+        $hashCode = if ($null -ne $this.homephone) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.homephone)) } else { $hashCode } 
+        $hashCode = if ($null -ne $this.mobile) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.mobile)) } else { $hashCode } 
+        $hashCode = if ($null -ne $this.work) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.work)) }  else { $hashCode } 
+        $hashCode = if ($null -ne $this.streetaddress) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.streetaddress)) } else { $hashCode } 
+        $hashCode = if ($null -ne $this.city) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.city)) } else { $hashCode } 
+        $hashCode = if ($null -ne $this.state) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.state)) } else { $hashCode } 
+        $hashCode = if ($null -ne $this.zip) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.zip)) } else { $hashCode } 
+        $hashCode = if ($null -ne $this.comments) { [HashCodeUtility]::UAdd($hashCode, [HashCodeUtility]::GetDeterministicHashCode($this.comments)) } else { $hashCode } 
         return $hashCode
     }
 }
