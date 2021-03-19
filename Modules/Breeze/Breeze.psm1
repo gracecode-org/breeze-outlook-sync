@@ -267,7 +267,18 @@ class Breeze {
         $endpoint = $this.ENDPOINTS.PEOPLE + '?details=1&filter_json={"' + $emailFieldId + '":"' + $email + '"}'
         $response = Invoke-WebRequest -Uri $endpoint  -Method Get -Headers $this.Headers
         [Person[]] $persons = [Person]::ToPersons($this.GetProfileFieldsAsJSON(), $response.Content)
-        return $persons
+        
+        # Filter out any persons where teh email isn't primary
+        $primaryEmailPersons = [System.Collections.ArrayList]::new()
+
+        foreach($person in $persons) {
+            [string] $primaryEmail = $person.GetFirstPrimaryEmail()
+            
+            if ($primaryEmail -eq $email) {
+                $primaryEmailPersons.Add($person)
+            }
+        }
+        return $primaryEmailPersons
     }
 
     [Person] GetMergedPersonsByEmail([string] $email) {
