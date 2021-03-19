@@ -187,7 +187,7 @@ class Exchange {
         return $result
     }
 
-    [void] SyncDistributionGrupFromTag([Tag] $tag) {
+    [void] SyncDistributionGroupFromTag([Tag] $tag) {
         if($null -eq $this.BreezeCache -or $this.Force -or $this.BreezeCache.HasTagChanged($tag)) {
             $persons = $tag.GetPersons()
             if($persons.Length -ne 0) {
@@ -284,16 +284,16 @@ class Exchange {
         
         # If we didn't find a contact or mailcontact, check if there is a UserMailbox
         # if there is, skip
-        if ($contact -eq $null -and $mailContact -eq $null) {
+        if ($null -eq $contact -and $null -eq $mailContact) {
             $user = $this.GetUserMailBox($email)
-            if($user -ne $null) {
+            if($null -ne $user) {
                 [Logger]::Write("Skipping (Person is a User).", $true)
                 return $user
             }
         }
 
-        if ($mailContact -eq $null) {
-            if ($contact -ne $null) {
+        if ($null -eq $mailContact) {
+            if ($null -ne $contact) {
                 # Email changed
                 $existingMailContact = $this.GetMailContact($name)
                 $existingEmail = $existingMailContact.PrimarySmtpAddress
@@ -309,7 +309,7 @@ class Exchange {
             }
         }
         else {
-            if ($contact -eq $null) {
+            if ($null -eq $contact) {
                 # Name changed
                 [Logger]::Write("Deleting conflicting mailcontact: $email")
                 if (-not $this.DryRun) {
@@ -344,7 +344,7 @@ class Exchange {
             }
         }
 
-        if ($contact -eq $null) {
+        if ($null -eq $contact) {
             # Create the contact if it doesn't exist.
             [Logger]::Write("Creating new MailContact: $name, $displayname, $email, $firstname, $lastname")
             if (-not $this.DryRun) {
@@ -357,7 +357,7 @@ class Exchange {
                         -LastName $Using:lastname `
                 }
 
-                if ($mailContact -eq $null) {
+                if ($null -eq $mailContact) {
                     throw [System.ApplicationException]::new("Unable to create MailContact for person: $person")
                 }
                 [Logger]::Write("Setting contact info for $name")

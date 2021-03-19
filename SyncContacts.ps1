@@ -40,7 +40,8 @@ param (
     [switch]$help = $false,
     [switch]$force = $false,
     [switch]$init = $false,
-    [switch]$test = $false
+    [switch]$test = $false,
+    [switch]$loginonly = $false
  )
 
  $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -148,35 +149,40 @@ if($test) {
     "  Connected!"
 }
 
-try {
-    if(-not $test) {
-        [Logger]::Write("Starting Sync")
+if($loginonly) {
+    [Logger]::Write("Logging in and keeping session open.", $true)
+}
+else {
+    try {
+        if(-not $test) {
+            [Logger]::Write("Starting Sync")
 
-        "Getting tags from Breeze..."
-        [Tag[]] $Tags = $BreezeAPI.GetTags()
-        [Logger]::Write("Retrieved " + $Tags.Length + " tags.", $true)
+            "Getting tags from Breeze..."
+            [Tag[]] $Tags = $BreezeAPI.GetTags()
+            [Logger]::Write("Retrieved " + $Tags.Length + " tags.", $true)
 
 
-        foreach ($tag in $Tags) {
-            if($null -eq $TagsToSkip -or $TagsToSkip.Contains($tag.GetName())) {
-                [Logger]::Write("Skipping tag (in skip list): " + $tag.GetName(), $true)
-            } elseif($null -eq $TagsToSync -or $TagsToSync.Contains($tag.GetName())) {
-                [Logger]::Write("Fetching tag: " + $tag.GetName(), $true)
-                [Person[]] $persons = $BreezeAPI.GetPersonsFromTagId($tag.GetId(), $true)
-                $Tag.SetPersons($persons)
-                try {
-                    $Exchange.SyncDistributionGrupFromTag($tag)
-                } catch {
-                    [Logger]::Write("Caught an exception... going to the next tag...", $true)
-                    [Logger]::Write($_.Exception)
-                    [Logger]::Write($_.ScriptStackTrace)
-                }
-            }    
+            foreach ($tag in $Tags) {
+                if($null -eq $TagsToSkip -or $TagsToSkip.Contains($tag.GetName())) {
+                    [Logger]::Write("Skipping tag (in skip list): " + $tag.GetName(), $true)
+                } elseif($null -eq $TagsToSync -or $TagsToSync.Contains($tag.GetName())) {
+                    [Logger]::Write("Fetching tag: " + $tag.GetName(), $true)
+                    [Person[]] $persons = $BreezeAPI.GetPersonsFromTagId($tag.GetId(), $true)
+                    $Tag.SetPersons($persons)
+                    try {
+                        $Exchange.SyncDistributionGroupFromTag($tag)
+                    } catch {
+                        [Logger]::Write("Caught an exception... going to the next tag...", $true)
+                        [Logger]::Write($_.Exception)
+                        [Logger]::Write($_.ScriptStackTrace)
+                    }
+                }    
+            }
         }
-    }
-} finally {
-    $Exchange.Disconnect()
-    if(-not $test) {
-        [Logger]::Write("Sync Complete", $true)
+    } finally {
+        $Exchange.Disconnect()
+        if(-not $test) {
+            [Logger]::Write("Sync Complete", $true)
+        }
     }
 }
