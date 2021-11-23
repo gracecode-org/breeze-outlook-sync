@@ -69,10 +69,10 @@ class Breeze {
         return $response.Content
     }
     
-    [Person[]] GetPersonsFromTagId([int]$tagId, [boolean] $dedupe) {
+    [Person[]] GetPersonsFromTagId([int]$tagId, [boolean] $dedupe, [boolean] $ignoreInvalidPerson) {
         $peopleJsonList = $this.GetPersonsFromTagIdAsJSON($tagId)
         if ([string]::IsNullOrEmpty($peopleJsonList)) { throw [System.ArgumentException]::new('Unable to retrieve people for tag: $tagId') }
-        [Person[]] $persons = [Person]::ToPersons($this.GetProfileFieldsAsJSON(), $peopleJsonList)
+        [Person[]] $persons = [Person]::ToPersons($this.GetProfileFieldsAsJSON(), $peopleJsonList, $ignoreInvalidPerson)
         if ($dedupe) { 
             # Trim any duplicate emails and persons without emails
             $persons = [Person]::GetDedupedPersons($persons)
@@ -266,7 +266,7 @@ class Breeze {
         $emailFieldId = [Person]::GetProfileFieldId($this.GetProfileFields(), "Contact", "Email")
         $endpoint = $this.ENDPOINTS.PEOPLE + '?details=1&filter_json={"' + $emailFieldId + '":"' + $email + '"}'
         $response = Invoke-WebRequest -Uri $endpoint  -Method Get -Headers $this.Headers
-        [Person[]] $persons = [Person]::ToPersons($this.GetProfileFieldsAsJSON(), $response.Content)
+        [Person[]] $persons = [Person]::ToPersons($this.GetProfileFieldsAsJSON(), $response.Content, $false)
         
         # Filter out any persons where teh email isn't primary
         $primaryEmailPersons = [System.Collections.ArrayList]::new()

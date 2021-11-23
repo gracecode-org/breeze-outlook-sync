@@ -167,9 +167,10 @@ else {
                     [Logger]::Write("Skipping tag (in skip list): " + $tag.GetName(), $true)
                 } elseif($null -eq $TagsToSync -or $TagsToSync.Contains($tag.GetName())) {
                     [Logger]::Write("Fetching tag: " + $tag.GetName(), $true)
-                    [Person[]] $persons = $BreezeAPI.GetPersonsFromTagId($tag.GetId(), $true)
-                    $Tag.SetPersons($persons)
                     try {
+                        # Retreive all the Persons from the tag, ignoring those who are invalid (no emails, no first/last name...)
+                        [Person[]] $persons = $BreezeAPI.GetPersonsFromTagId($tag.GetId(), $true, $true)
+                        $Tag.SetPersons($persons)
                         $Exchange.SyncDistributionGroupFromTag($tag)
                     } catch {
                         [Logger]::Write("Caught an exception... going to the next tag...", $true)

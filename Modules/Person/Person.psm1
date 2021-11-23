@@ -294,11 +294,22 @@ class Person {
         return $fields | ConvertTo-Json
     }
 
-    static [Person[]] ToPersons([string] $breezeProfileFields, [string] $breezeJsonPersons) {
+    static [Person[]] ToPersons([string] $breezeProfileFields, [string] $breezeJsonPersons, [boolean] $ignoreInvalidPerson) {
         [PSObject] $personPSObjects = $breezeJsonPersons | ConvertFrom-Json
         $personList = New-Object 'System.Collections.Generic.List[Person]'
         foreach ($personPSObject in $personPSObjects) {
-            $personList.Add([Person]::new($breezeProfileFields, $personPSObject))
+            try {
+                $personList.Add([Person]::new($breezeProfileFields, $personPSObject))
+            }
+            catch {
+                [Logger]::Write("Caught an exception... ignoring person: " + $personPSObject.id, $true)
+                [Logger]::Write($_.Exception)
+                [Logger]::Write($_.ScriptStackTrace)                                
+
+                if (-Not $ignoreInvalidPerson) {
+                    throw $_.Exception
+                }   
+            }
         }
         return $personList.ToArray()
     }

@@ -194,13 +194,13 @@ class Exchange {
                 [Logger]::Write("Synchronizing tag: " + $tag.GetName() + "(" + $tag.GetId() + ") with " + $persons.Length + " persons..", $true)
                 $notes = "breezetag:" + $tag.GetId()
                 $this.SyncDistributionGroupToBreezePersons($tag.name, $persons, $notes)
-                if($null -ne $this.BreezeCache) {
-                    $this.BreezeCache.CacheTag($tag)
-                }
             } else {
                 [Logger]::Write("Skipping tag (no people with emails): " + $tag.GetName(), $true)
             }
-        } else {
+            if($null -ne $this.BreezeCache) {
+                $this.BreezeCache.CacheTag($tag)
+            }
+    } else {
             [Logger]::Write("Skipping unchanged tag: " + $tag.GetName(), $true)
         }
 

@@ -56,7 +56,7 @@ class MockBreeze : Breeze {
     [Person[]] GetPersonsByEmail([string] $email) {
         
         $personsJSON = [IO.File]::ReadAllText([MockBreeze]::PERSONS_TAG_TEST_FILE)
-        [Person[]] $persons = [Person]::ToPersons($this.GetProfileFieldsAsJSON(), $personsJSON)
+        [Person[]] $persons = [Person]::ToPersons($this.GetProfileFieldsAsJSON(), $personsJSON, $false)
         
         $newPersonsList = New-Object 'System.Collections.Generic.List[Person]'
         foreach ($person in $persons) {
