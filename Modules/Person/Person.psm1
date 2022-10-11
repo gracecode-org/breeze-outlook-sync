@@ -83,14 +83,14 @@ class Person {
         if ($personPSObject.details.details -ne $null) {
             # The Filter API format
             $this.id = $personPSObject.id
-            $this.first = $personPSObject.force_first_name
-            $this.nickname = $personPSObject.nick_name
-            $this.last = $personPSObject.last_name
-            $this.middle = $personPSObject.middle_name
-            $this.email = $personPSObject.details.details.email_primary
-            $this.streetaddress = $personPSObject.details.details.street_address
+            $this.first = [Person]::Trim($personPSObject.force_first_name)
+            $this.nickname = [Person]::Trim($personPSObject.nick_name)
+            $this.last = [Person]::Trim($personPSObject.last_name)
+            $this.middle = [Person]::Trim($personPSObject.middle_name)
+            $this.email = [Person]::Trim($personPSObject.details.details.email_primary)
+            $this.streetaddress = [Person]::Trim($personPSObject.details.details.street_address)
             $this.city = [Person]::Trim($personPSObject.details.details.city)
-            $this.state = $personPSObject.details.details.state
+            $this.state = [Person]::Trim($personPSObject.details.details.state)
             $this.zip = $personPSObject.details.details.zip
             if ($personPSObject.details.details.home -match [Person]::PHONEREGEX) {
                 $this.homephone = $personPSObject.details.details.home
@@ -107,24 +107,24 @@ class Person {
         else {
             # The id API format
             $this.id = $personPSObject.id
-            $this.first = $personPSObject.force_first_name
-            $this.nickname = $personPSObject.nick_name
-            $this.last = $personPSObject.last_name
-            $this.middle = $personPSObject.middle_name
-            $fieldId = $this.GetProfileFieldId("Contact", "Email")
+            $this.first = [Person]::Trim($personPSObject.force_first_name)
+            $this.nickname = [Person]::Trim($personPSObject.nick_name)
+            $this.last = [Person]::Trim($personPSObject.last_name)
+            $this.middle = [Person]::Trim($personPSObject.middle_name)
+            $fieldId = [Person]::Trim($this.GetProfileFieldId("Contact", "Email"))
             [PSCustomObject[]] $emails = $personPSObject.details."$fieldId"
             foreach ($email in $emails) {
                 if ($email.field_type -eq "email_primary") {
-                    $this.email = $email.address
+                    $this.email = [Person]::Trim($email.address)
                 }
             }            
             $fieldId = $this.GetProfileFieldId("Contact", "Address")
             [PSCustomObject[]] $addresses = $personPSObject.details."$fieldId"
             foreach ($address in $addresses) {
                 if ($address.field_type -eq "address_primary") {
-                    $this.streetaddress = $address.street_address
+                    $this.streetaddress = [Person]::Trim($address.street_address)
                     $this.city = [Person]::Trim($address.city)
-                    $this.state = $address.state
+                    $this.state = [Person]::Trim($address.state)
                     $this.zip = $address.zip
                 }
             }            
