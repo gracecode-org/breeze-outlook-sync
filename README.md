@@ -72,6 +72,12 @@ Next steps:
 2. Test the file by running: SyncContacts.ps1 -test
 ```  
 
+# Setting up certificate-based authentication
+Microsoft deprecated and is/has removed Basic Authentication for Exchange Online, which is a good idea.  This script now uses 
+Client Certificate Authentication over HTTPS.
+
+New-SelfSignedCertificate -Subject "Breeze-Outlook-Sync-Client" -CertStoreLocation "cert:\CurrentUser\My" -KeySpec KeyExchange -FriendlyName "For the Breeze-Outlook-Sync Client"
+
 # Getting Started
 1.  Edit the file created in the installation step.  See the `config.json` section for details on how to edit this file.
 2.  Test your connection, in your Powershell window:

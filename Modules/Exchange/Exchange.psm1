@@ -17,29 +17,29 @@ using module ..\BreezeCache\
 
 class Exchange {
     $DryRun = $false
-    $Session = $null
     $GroupsList = $null
     $GroupEmailDomain = $null
     $BreezeCache = $null
     $Force = $false
+    $Connected = $false
 
 
     Exchange([string] $connectionUri, [string] $user, [string] $password, 
-      [string] $groupEmailDomain, [BreezeCache] $breezeCache, [boolean] $force) {
+      [string] $groupEmailDomain, [BreezeCache] $breezeCache, [boolean] $force, [string] $certThumbprint, [string] $appId, [string] $org) {
         [Logger]::Write("Connecting to Exchange...", $true)
-        $SecurePass = ConvertTo-SecureString -String $password -AsPlainText -Force
-        $UserCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $user, $SecurePass
-        $this.Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $connectionUri/ -Credential $UserCredential -Authentication Basic -AllowRedirection
+
+        Connect-ExchangeOnline -CertificateThumbPrint $certThumbprint -AppID $appId -Organization $org
+        $this.Connected = $true
         $this.GroupEmailDomain = $groupEmailDomain
         $this.BreezeCache = $breezeCache
         $this.Force = $force
     }
 
     [PSObject] GetDistributionGroups() {
-        if ($this.GroupsList -eq $null) {
+        if ($null -eq $this.GroupsList) {
             [Logger]::Write("Fetching distribution groups...")
             $this.GroupsList = New-Object -TypeName "System.Collections.ArrayList"
-            $groups = Invoke-Command -Session $this.Session -ScriptBlock { Get-DistributionGroup }
+            $groups = Get-DistributionGroup
             $this.GroupsList.AddRange($groups)
         }
         return $this.GroupsList
@@ -55,10 +55,7 @@ class Exchange {
     }
 
     [PSObject] GetGroup([string] $groupName) {
-        $group = Invoke-Command -Session $this.Session -ScriptBlock { 
-            Get-Group -Identity $Using:groupName 
-        }
-        return $group
+        return  Get-Group -Identity $groupName 
     }
 
     [PSObject] CreateDistributionGroup([string] $groupName, [string] $alias, [string] $notes) {
@@ -72,21 +69,18 @@ class Exchange {
         if (-not $this.DryRun) {
             [Logger]::Write("Creating new distribution group: " + $groupName, $true)
             if([String]::IsNullOrEmpty($alias)) {
-                $group = Invoke-Command -Session $this.Session -ScriptBlock { 
-                    New-DistributionGroup -Name $Using:groupName -Type "Distribution" `
-                        -RequireSenderAuthenticationEnabled $false -Confirm:$false `
-                        -Notes $Using:notes
-                    # UnifiedGroups do NOT work with Mail Contacts
-                    #New-UnifiedGroup -Name $Using:groupName -DisplayName $Using:groupName -RequireSenderAuthenticationEnabled $false 
-                }
+                $group = New-DistributionGroup -Name $groupName -Type "Distribution" `
+                    -RequireSenderAuthenticationEnabled $false -Confirm:$false `
+                    -Notes $notes                        
+
+                #     # UnifiedGroups do NOT work with Mail Contacts
+                #     #New-UnifiedGroup -Name $groupName -DisplayName $groupName -RequireSenderAuthenticationEnabled $false 
             } else {
-                $group = Invoke-Command -Session $this.Session -ScriptBlock { 
-                    New-DistributionGroup -Name $Using:groupName -Type "Distribution" `
-                        -RequireSenderAuthenticationEnabled $false -Confirm:$false `
-                        -Notes $Using:notes -Alias $Using:alias
-                    # UnifiedGroups do NOT work with Mail Contacts
-                    #New-UnifiedGroup -Name $Using:groupName -DisplayName $Using:groupName -RequireSenderAuthenticationEnabled $false 
-                }
+                $group = New-DistributionGroup -Name $groupName -Type "Distribution" `
+                    -RequireSenderAuthenticationEnabled $false -Confirm:$false `
+                    -Notes $notes -Alias $alias
+                #     # UnifiedGroups do NOT work with Mail Contacts
+                #     #New-UnifiedGroup -Name $groupName -DisplayName $groupName -RequireSenderAuthenticationEnabled $false 
             }
 
             if($group -ne $null) {
@@ -96,11 +90,11 @@ class Exchange {
                     $emailName = $oldPrimaryEmail.Split("@")[0]
                     $newPrimaryEmail = $emailName + "@" + $domain
                     [Logger]::Write("Setting distribution group email: " + $newPrimaryEmail, $true)
-                    $group = Invoke-Command -Session $this.Session -ScriptBlock { 
-                        Set-DistributionGroup -Identity $Using:groupName  -Confirm:$false `
-                            -PrimarySmtpAddress $Using:newPrimaryEmail
-                    }
+                    $group = Set-DistributionGroup -Identity $groupName  -Confirm:$false `
+                        -PrimarySmtpAddress $newPrimaryEmail
                 }
+            } else {
+                [Logger]::Write("New-DistributionGroup returned null", $true)
             }
 
             if ($group -ne $null -and $this.GroupList -ne $null) {
@@ -112,9 +106,7 @@ class Exchange {
     }
 
     [void] RemoveGroup([string] $groupName) {
-        Invoke-Command -Session $this.Session -ScriptBlock { 
-            Remove-DistributionGroup -Identity $Using:groupName -Confirm:$false
-        }
+        Remove-DistributionGroup -Identity $groupName -Confirm:$false
     }
 
     [PSObject] GetDistributionGroupMembers([string] $groupName) {
@@ -142,8 +134,7 @@ class Exchange {
                     Notes
                     Office
             #>        
-        $members = Invoke-Command -Session $this.Session -ScriptBlock { Get-DistributionGroupMember -Identity $Using:groupName }        
-        return $members
+        return Get-DistributionGroupMember -Identity $groupName
     }
 
     static [boolean] HasDistributionGroupMember([PSObject] $groupMembers, [string] $memberEmail) {
@@ -156,18 +147,18 @@ class Exchange {
     }
 
     [PSObject] GetMailContact([string] $memberEmail) {
-        return Invoke-Command -Session $this.Session -ScriptBlock { Get-MailContact -Identity $Using:memberEmail }
+        return Get-MailContact -Identity $memberEmail
     }
 
     [PSObject] GetContactFromEmail([string] $memberEmail) {
-        return Invoke-Command -Session $this.Session -ScriptBlock { Get-Contact -Identity $Using:memberEmail }
+        return Get-Contact -Identity $memberEmail 
     }
     [PSObject] GetContact([string] $name) {
-        return Invoke-Command -Session $this.Session -ScriptBlock { Get-Contact -Identity $Using:name }
+        return  Get-Contact -Identity $name
     }
 
     [PSObject] GetUserMailBox([string] $userEmail) {
-        return Invoke-Command -Session $this.Session -ScriptBlock { Get-User -Identity $Using:userEmail -RecipientTypeDetails UserMailBox}
+        return Get-User -Identity $userEmail -RecipientTypeDetails UserMailBox
     }
 
     [PSObject] AddContactToDistributionGroup([string] $groupName, [string] $memberEmail) {
@@ -181,7 +172,7 @@ class Exchange {
         $result = $null
         [Logger]::Write("AddContactToDistributionGroup: " + $groupName + ", " + $memberEmail)
         if (-not $this.DryRun) {
-            $result = Invoke-Command -Session $this.Session -ScriptBlock { Add-DistributionGroupMember  -Identity $Using:groupName  -Confirm:$false -Member $Using:memberEmail }
+            $result = Add-DistributionGroupMember  -Identity $groupName  -Confirm:$false -Member $memberEmail
         }
         [Logger]::Write("AddContactToDistributionGroup: result=" + $result)
         return $result
@@ -227,10 +218,7 @@ class Exchange {
         # Remove any duplicates as a result of merging persons with emails.
         $emailList = $emailList | Sort-Object | Get-Unique
         [Logger]::Write("Updating DistributionGroupMembers: $emailList", $false, [Logger]::LOGLEVEL_DEBUG)
-        Invoke-Command -Session $this.Session -ScriptBlock {
-            Update-DistributionGroupMember  -Identity $Using:groupName  -Confirm:$false `
-                -Members $Using:emailList 
-        }
+        Update-DistributionGroupMember  -Identity $groupName  -Confirm:$false -Members $emailList 
     }
 
     [PSObject] SyncContactFromBreezePerson([Person] $person) {
@@ -299,11 +287,7 @@ class Exchange {
                 $existingEmail = $existingMailContact.PrimarySmtpAddress
                 [Logger]::Write("Deleting conflicting contact: $name, $existingEmail")
                 if (-not $this.DryRun) {
-                    Invoke-Command -Session $this.Session -ScriptBlock { `
-                            Remove-MailContact `
-                            -Identity $Using:existingEmail `
-                            -Confirm:$false `
-                    }
+                    Remove-MailContact -Identity $existingEmail -Confirm:$false
                     $contact = $null
                 }
             }
@@ -313,32 +297,26 @@ class Exchange {
                 # Name changed
                 [Logger]::Write("Deleting conflicting mailcontact: $email")
                 if (-not $this.DryRun) {
-                    Invoke-Command -Session $this.Session -ScriptBlock { `
-                            Remove-MailContact `
-                            -Identity $Using:email `
-                            -Confirm:$false `
-                    }
+                    Remove-MailContact `
+                            -Identity $email `
+                            -Confirm:$false
                     $mailContact = $null
                 }
             }
             elseif ($mailContact.Identity -ne $contact.Identity) {
                 [Logger]::Write("Deleting conflicting contact: " + $email)
                 if (-not $this.DryRun) {
-                    Invoke-Command -Session $this.Session -ScriptBlock { `
-                            Remove-MailContact `
-                            -Identity $Using:name `
-                            -Confirm:$false `
-                    }
+                    Remove-MailContact `
+                    -Identity $name `
+                    -Confirm:$false
                 }
                 $contact = $null
 
                 [Logger]::Write("Deleting conflicting mailcontact: " + $email, $true)
                 if (-not $this.DryRun) {
-                    Invoke-Command -Session $this.Session -ScriptBlock { `
-                            Remove-MailContact `
-                            -Identity $Using:email `
-                            -Confirm:$false `
-                    }
+                    Remove-MailContact `
+                    -Identity $email `
+                    -Confirm:$false
                 }
                 $mailContact = $null
             }
@@ -348,48 +326,43 @@ class Exchange {
             # Create the contact if it doesn't exist.
             [Logger]::Write("Creating new MailContact: $name, $displayname, $email, $firstname, $lastname")
             if (-not $this.DryRun) {
-                $mailContact = Invoke-Command -Session $this.Session -ScriptBlock { `
-                        New-MailContact `
-                        -Name $Using:name `
-                        -DisplayName $Using:displayname `
-                        -ExternalEmailAddress $Using:email `
-                        -FirstName $Using:firstname `
-                        -LastName $Using:lastname `
-                }
+                $mailContact =  New-MailContact `
+                    -Name $name `
+                    -DisplayName $displayname `
+                    -ExternalEmailAddress $email `
+                    -FirstName $firstname `
+                    -LastName $lastname
 
                 if ($null -eq $mailContact) {
                     throw [System.ApplicationException]::new("Unable to create MailContact for person: $person")
                 }
                 [Logger]::Write("Setting contact info for $name")
-                Invoke-Command -Session $this.Session -ScriptBlock { `
-                        Set-Contact $Using:name `
-                        -StreetAddress  $Using:streetaddress `
-                        -City  $Using:city `
-                        -StateorProvince  $Using:state `
-                        -PostalCode  $Using:zip `
-                        -Phone  $Using:workphone `
-                        -MobilePhone  $Using:mobilephone `
-                        -HomePhone  $Using:homephone `
-                        -Notes  $Using:notes `
-                        -Office  $Using:workphone `
-                }
+                Set-Contact $name `
+                    -StreetAddress  $streetaddress `
+                    -City  $city `
+                    -StateorProvince  $state `
+                    -PostalCode  $zip `
+                    -Phone  $workphone `
+                    -MobilePhone  $mobilephone `
+                    -HomePhone  $homephone `
+                    -Notes  $notes `
+                    -Office  $workphone                
             }
         }
         else {
             if (-not [Person]::ContactEquals($person, $contact)) {
                 [Logger]::Write("Updating contact info: $email")
-                Invoke-Command -Session $this.Session -ScriptBlock { `
-                        Set-Contact $Using:email `
-                        -StreetAddress  $Using:streetaddress `
-                        -City  $Using:city `
-                        -StateorProvince  $Using:state `
-                        -PostalCode  $Using:zip `
-                        -Phone  $Using:workphone `
-                        -MobilePhone  $Using:mobilephone `
-                        -HomePhone  $Using:homephone `
-                        -Notes  $Using:notes `
-                        -Office  $Using:workphone `
-                }
+                Set-Contact $email `
+                    -StreetAddress  $streetaddress `
+                    -City  $city `
+                    -StateorProvince  $state `
+                    -PostalCode  $zip `
+                    -Phone  $workphone `
+                    -MobilePhone  $mobilephone `
+                    -HomePhone  $homephone `
+                    -Notes  $notes `
+                    -Office  $workphone
+
             }
         }
 
@@ -404,18 +377,19 @@ class Exchange {
     [void] RemoveMailContact([string] $email) {
         [Logger]::Write("Deleting mailcontact: $email")
         if (-not $this.DryRun) {
-            Invoke-Command -Session $this.Session -ScriptBlock { `
-                    Remove-MailContact `
-                    -Identity $Using:email `
-                    -Confirm:$false `
-            }
+            Remove-MailContact `
+                -Identity $email `
+                -Confirm:$false
         }
     }
 
 
     [void] Disconnect() {
-        [Logger]::Write("Disconnecting from Exchange...", $true)
-        Remove-PSSession $this.Session.Id
+        if ($this.Connected -eq $true) {
+            [Logger]::Write("Disconnecting from Exchange...", $true)
+            Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue
+            $this.Connected = $false
+        }
     }
 
 }

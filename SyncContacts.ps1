@@ -53,6 +53,10 @@ function ShowHelp {
 
 }
 
+function Pause() {
+    Start-Sleep -s 2
+}
+
 if($help) {
     ShowHelp
     exit 0
@@ -112,11 +116,11 @@ if($null -ne $Config.cfg.Breeze.SyncSettings.TagsToSkip) {
 
 if ($null -eq $TagsToSync) {
     "Synchronizing all tags."
+} else {
+    "Synchronizing tags: " + $TagsToSync
 }
 
-if ($null -eq $TagsToSkip) {
-    "Skipping tags: " + $TagsToSkip
-}
+"Skipping tags: " + $TagsToSkip
 
 # Initialize our cache
 $BreezeCache = [BreezeCache]::new($Config.GetCachePath())
@@ -143,7 +147,11 @@ $Exchange = [Exchange]::new(
     $Config.cfg.Exchange.Connection.password, 
     $Config.cfg.Exchange.groupEmailDomain,
     $BreezeCache,
-    $force)
+    $force,
+    $Config.cfg.Exchange.Connection.certThumbprint,
+    $Config.cfg.Exchange.Connection.appId,
+    $Config.cfg.Exchange.Connection.organization
+    )
 
 if($test) {
     "  Connected!"
@@ -163,7 +171,7 @@ else {
 
 
             foreach ($tag in $Tags) {
-                if($null -eq $TagsToSkip -or $TagsToSkip.Contains($tag.GetName())) {
+                if($null -ne $TagsToSkip -and $TagsToSkip.Contains($tag.GetName())) {
                     [Logger]::Write("Skipping tag (in skip list): " + $tag.GetName(), $true)
                 } elseif($null -eq $TagsToSync -or $TagsToSync.Contains($tag.GetName())) {
                     [Logger]::Write("Fetching tag: " + $tag.GetName(), $true)
@@ -178,6 +186,7 @@ else {
                         [Logger]::Write($_.ScriptStackTrace)
                     }
                 }    
+                Pause
             }
         }
     } finally {
