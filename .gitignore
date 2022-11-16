@@ -1,2 +1,4 @@
 tests/test_personcache
 tests/test_tagcache
+.vscode
+sync.log

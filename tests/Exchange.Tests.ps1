@@ -30,9 +30,10 @@ class Utility {
         $p.GetCity() | Should -be $c.City
         $p.GetState() | Should -be $c.StateOrProvince
         $p.GetZip() | Should -be $c.PostalCode
-        $p.GetHomePhone() | Should -be $c.Phone
+        $p.GetHomePhone() | Should -be $c.HomePhone
         $p.GetMobilePhone() | Should -be $c.MobilePhone
         $p.GetWorkPhone() | Should -be $c.Office
+        $p.GetWorkPhone() | Should -be $c.Phone
     }
 
 }
@@ -57,7 +58,11 @@ Describe "SyncContacts" {
     BeforeAll {
         $exchange = [Exchange]::new($Config.Exchange.Connection.URI, `
             $Config.Exchange.Connection.username, 
-            $Config.Exchange.Connection.password, $null, $null, $true)
+            $Config.Exchange.Connection.password,
+            $null, $null, $true,
+            $Config.Exchange.Connection.certThumbprint,
+            $Config.Exchange.Connection.appId,
+            $Config.Exchange.Connection.organization)
         $breeze = [MockBreeze]::new()
     }
 
@@ -166,7 +171,11 @@ Describe "SyncGroup" {
     BeforeAll {
         $exchange = [Exchange]::new($Config.Exchange.Connection.URI, `
             $Config.Exchange.Connection.username, 
-            $Config.Exchange.Connection.password, $null, $null, $true)
+            $Config.Exchange.Connection.password,
+            $null, $null, $true,
+            $Config.Exchange.Connection.certThumbprint,
+            $Config.Exchange.Connection.appId,
+            $Config.Exchange.Connection.organization)
         $breeze = [MockBreeze]::new()
     }
 
@@ -177,7 +186,7 @@ Describe "SyncGroup" {
     Context "Distribution Group Sync" {
         AfterAll {
             Write-Host "Cleaning Up Test Users... "
-            $persons = $breeze.GetPersonsFromTagId($breeze.GetTagByName("TEST").id, $true)
+            $persons = $breeze.GetPersonsFromTagId($breeze.GetTagByName("TEST").id, $true, $false)
             foreach ($person in $persons) {
                 try {
                     $exchange.RemoveMailContact($person.email)
@@ -216,7 +225,7 @@ Describe "SyncGroup" {
             $group | Should -Not -BeNullOrEmpty
 
             $tagId = $breeze.GetTagByName("TEST").id
-            $persons = $breeze.GetPersonsFromTagId($tagId, $true)
+            $persons = $breeze.GetPersonsFromTagId($tagId, $true, $false)
             $exchange.SyncDistributionGroupToBreezePersons("TEST", $persons, $null)
             [PSObject[]] $contacts = $exchange.GetDistributionGroupMembers("TEST")
 
@@ -247,7 +256,7 @@ Describe "SyncGroup" {
             $contacts.length | Should -Be 3
 
             #Cleanup
-            $persons = $breeze.GetPersonsFromTagId($tagId, $true)
+            $persons = $breeze.GetPersonsFromTagId($tagId, $true, $true)
             foreach ($person in $persons) {
                 try {
                     $exchange.RemoveMailContact($person.email)
