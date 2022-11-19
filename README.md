@@ -57,26 +57,42 @@ Office 365 and Breeze have a different relationship model:
 1.  Download the latest release from the [releases page](https://github.com/gracecode-org/breeze-outlook-sync/releases).
 2.  Extract to your Program Files directory (e.g. `C:\Program Files\BreezeOutlookSync`)
 3.  Open a PowerShell window and run the following commands:
-    1.  `ps> cd "C:\Program Files\BreezeOutlookSync`
-    2.  `ps> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
-
-        See https:/go.microsoft.com/fwlink/?LinkID=135170 for more information on Script Execution Policies.
-    3.  `ps> .\SyncContacts.ps1 -init`
+    1.  `ps> get-childitem "C:\Program Files\BreezeOutlookSync" -recurse | unblock-file`
+    2.  `ps> cd "C:\Program Files\BreezeOutlookSync`
+    3.  `ps> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+    4.  `ps> Install-Module -Name ExchangeOnlineManagement -RequiredVersion 3.0.0`
+    4.  `ps> .\SyncContacts.ps1 -init`
 
 The following output is displayed:
 ```
 Creating configuration file template...
 Template configuration file created: C:\Users\Chris\AppData\Roaming\BreezeOutlookSync\config.json
 Next steps:
-1. Edit the file
+1. Edit the file.  Follow the instructions in the following section to add the:
+   - application id
+   - certificate thumbprint
+   - organization
+   - DO NOT use the userid/password.  That no longer works.
 2. Test the file by running: SyncContacts.ps1 -test
+
 ```  
 
-# Setting up certificate-based authentication
+## Setting up certificate-based authentication
 Microsoft deprecated and is/has removed Basic Authentication for Exchange Online, which is a good idea.  This script now uses 
 Client Certificate Authentication over HTTPS.
 
-New-SelfSignedCertificate -Subject "Breeze-Outlook-Sync-Client" -CertStoreLocation "cert:\CurrentUser\My" -KeySpec KeyExchange -FriendlyName "For the Breeze-Outlook-Sync Client"
+Follow these instructions to create an Application registration, create permissions, for the app, and create and assigne a self-signed certificate:
+- [App-Only Authentication](https://learn.microsoft.com/en-us/powershell/exchange/app-only-auth-powershell-v2?view=exchange-ps)
+- [Get Thumbprint for the Certificate](https://learn.microsoft.com/en-us/dotnet/framework/wcf/feature-details/how-to-retrieve-the-thumbprint-of-a-certificate)
+
+The Application needs the following permissions:
+- Microsoft Graph: 
+  - `User.Read`
+- Office 365 Exhange Online
+  - `Contacts.Read`
+  - `Contacts.ReadWrite`
+  - `Exchange.ManageAsApp`
+  - `Organization.ReadAll`
 
 # Getting Started
 1.  Edit the file created in the installation step.  See the `config.json` section for details on how to edit this file.
