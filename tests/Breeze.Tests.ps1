@@ -56,6 +56,8 @@ function GetTestPersons([Breeze] $breeze, [boolean] $setIds) {
 
 Describe "Person" {
     $TEST_PROFILE_FIELDS=[IO.File]::ReadAllText([MockBreeze]::PROFILE_FIELDS_FILE)
+    
+    $TEST_PROFILE_FIELDS | Should -Not -BeNullOrEmpty
 
     It "GetProfileFieldId" {
         $p1 = [Person]::new($TEST_PROFILE_FIELDS, 0, "Test", "Nick", "Mid", "User", `
@@ -320,6 +322,7 @@ Describe "Person" {
         "100 Main St", "Rochester", "MN", "55901", @("TEST1", "TEST2"))
         $p1.GetFirstPrimaryEmail() | Should -Be "testuser@yopmail.com"
     }
+}
 
 Describe "BreezeCache" {
     $TEST_PROFILE_FIELDS=[IO.File]::ReadAllText([MockBreeze]::PROFILE_FIELDS_FILE)

@@ -58,6 +58,10 @@ class Breeze {
         }
     }
 
+    [void] Pause() {
+        Start-Sleep -s 3.5
+    }    
+
     [Person] GetPersonById([int] $personId) {
         $personJSON = $this.GetPersonByIdAsJSON($personId)
         return [Person]::new($this.GetProfileFieldsAsJSON(), $personJSON)
@@ -65,6 +69,7 @@ class Breeze {
 
     [string] GetPersonByIdAsJSON([int] $personId) {
         $endpoint = $this.ENDPOINTS.PEOPLE + "/$personId"
+        Pause
         $response = Invoke-WebRequest -Uri $endpoint  -Method Get -Headers $this.Headers
         return $response.Content
     }
@@ -88,6 +93,7 @@ class Breeze {
 
     [string] GetPersonsFromTagIdAsJSON([int]$tagId) {
         $endpoint = $this.ENDPOINTS.PEOPLE + '?details=1&filter_json={"tag_contains":"y_' + [System.Web.HttpUtility]::UrlEncode($tagId) + '"}'
+        Pause
         $response = Invoke-WebRequest -Uri $endpoint  -Method Get -Headers $this.Headers
         return $response.Content
     }
@@ -110,7 +116,8 @@ class Breeze {
                 "&last=" + [System.Web.HttpUtility]::UrlEncode($person.GetLastName()) + `
                 "&middle=" + [System.Web.HttpUtility]::UrlEncode($person.GetMiddleName()) + `
                 "&nick=" + [System.Web.HttpUtility]::UrlEncode($person.GetNickName())
-            $breezePerson = Invoke-WebRequest -Uri $endpoint  -Method Post -Headers $this.Headers | ConvertFrom-Json
+                Pause
+                $breezePerson = Invoke-WebRequest -Uri $endpoint  -Method Post -Headers $this.Headers | ConvertFrom-Json
             if ($breezePerson -eq $null) { throw [System.ApplicationException]::new('Unable to create person: $person') }
             $person.id = $breezePerson.id
         }
@@ -122,6 +129,7 @@ class Breeze {
         # Update the additional Fields
         $personId = $person.id
         $endpoint = $this.ENDPOINTS.PEOPLE + "/update?person_id=$personId&fields_json=$fieldsJson"  
+        Pause
         $breezePerson = Invoke-WebRequest -Uri $endpoint  -Method Post -Headers $this.Headers | ConvertFrom-Json
         if ($breezePerson -eq $null) { throw [System.ApplicationException]::new('Unable to update person: $person') }
 
@@ -131,6 +139,7 @@ class Breeze {
             [Tag] $tag = $this.GetTagByName($tagName)
             [int] $tagId = $tag.id
             $endpoint = $this.ENDPOINTS.TAGS + "/assign?person_id=$personId&tag_id=$tagId"  
+            Pause
             $result = Invoke-WebRequest -Uri $endpoint  -Method Put -Headers $this.Headers | ConvertFrom-Json
         }
 
@@ -147,6 +156,7 @@ class Breeze {
     [void] DeletePerson([int] $personId) {
         if ($personId -eq 0) { throw [System.ArgumentException]::new('person id must be non-zero') }
         $endpoint = $this.ENDPOINTS.PEOPLE + "/delete?person_id=$personId"  
+        Pause
         Invoke-WebRequest -Uri $endpoint  -Method Delete -Headers $this.Headers | ConvertFrom-Json
     }
 
@@ -174,6 +184,7 @@ class Breeze {
 
     hidden [string] GetTagsAsJSON() {
         $endpoint = $this.ENDPOINTS.TAGS + '/list_tags'
+        Pause
         $response = Invoke-WebRequest -Uri $endpoint  -Method Get -Headers $this.Headers
         return $response.Content
     }
@@ -213,6 +224,7 @@ class Breeze {
 
         # Invalidate the taglist cache
         $this.TagList = $null
+        Pause
         $tagPSObject = Invoke-WebRequest -Uri $endpoint  -Method Get -Headers $this.Headers | ConvertFrom-Json
         $tag.id = $tagPSObject.id
         return $tag
@@ -228,6 +240,7 @@ class Breeze {
     [void] DeleteTag([int] $tagId) {
         if ($tagId -eq 0) { throw [System.ArgumentException]::new('tag id must be non-zero') }
         $endpoint = $this.ENDPOINTS.TAGS + "/delete_tag?tag_id=$tagId"  
+        Pause
         $result = Invoke-WebRequest -Uri $endpoint  -Method Delete -Headers $this.Headers | ConvertFrom-Json
     }
 
@@ -248,6 +261,7 @@ class Breeze {
         $endpoint = $this.ENDPOINTS.PROFILEFIELDS
 
         if ($this.ProfileFieldsJSON -eq $null) {
+            Pause
             $response = Invoke-WebRequest -Uri $endpoint  -Method Get -Headers $this.Headers
             $this.ProfileFieldsJSON = $response.Content
         }
@@ -265,6 +279,7 @@ class Breeze {
     [Person[]] GetPersonsByEmail([string] $email) {
         $emailFieldId = [Person]::GetProfileFieldId($this.GetProfileFields(), "Contact", "Email")
         $endpoint = $this.ENDPOINTS.PEOPLE + '?details=1&filter_json={"' + $emailFieldId + '":"' + $email + '"}'
+        Pause
         $response = Invoke-WebRequest -Uri $endpoint  -Method Get -Headers $this.Headers
         [Person[]] $persons = [Person]::ToPersons($this.GetProfileFieldsAsJSON(), $response.Content, $false)
         
