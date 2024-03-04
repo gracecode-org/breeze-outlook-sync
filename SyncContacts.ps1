@@ -54,7 +54,7 @@ function ShowHelp {
 }
 
 function Pause() {
-    Start-Sleep -s 2
+    Start-Sleep -s 3.5
 }
 
 if($help) {
@@ -161,6 +161,7 @@ if($loginonly) {
     [Logger]::Write("Logging in and keeping session open.", $true)
 }
 else {
+    $maxTagPersons = $Config.cfg.Breeze.SyncSettings.MaxTagPersons
     try {
         if(-not $test) {
             [Logger]::Write("Starting Sync")
@@ -178,15 +179,20 @@ else {
                     try {
                         # Retreive all the Persons from the tag, ignoring those who are invalid (no emails, no first/last name...)
                         [Person[]] $persons = $BreezeAPI.GetPersonsFromTagId($tag.GetId(), $true, $true)
-                        $Tag.SetPersons($persons)
-                        $Exchange.SyncDistributionGroupFromTag($tag)
+                        
+                        # if the number of persons exceeds the configured setting, then abort
+                        if($null -eq $maxTagPersons -or ($persons.Length -le  $maxTagPersons)) {
+                            $Tag.SetPersons($persons)
+                            $Exchange.SyncDistributionGroupFromTag($tag)
+                        } else {
+                            [Logger]::Write("Skipping tag: " + $tag.GetName() + ".  MaxTagPersons exceeded: " + $persons.Length, $true)
+                        }
                     } catch {
                         [Logger]::Write("Caught an exception... going to the next tag...", $true)
                         [Logger]::Write($_.Exception)
                         [Logger]::Write($_.ScriptStackTrace)
                     }
                 }    
-                Pause
             }
         }
     } finally {

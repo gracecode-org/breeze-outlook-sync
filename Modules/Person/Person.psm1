@@ -8,7 +8,7 @@
     Copyright (c) 2020 Chris D. Johnson All rights reserved.  
     Licensed under the Apache 2.0. See LICENSE file in the project root for full license information.  
 #>
-using assembly System.Web
+# using assembly System.Web
 using module ..\Logger\
 
 class Person {

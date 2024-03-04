@@ -145,7 +145,7 @@ Sync Complete
 
 # Requirements and Details
 This utility has been tested with:
-- Windows 10 and 
+- Windows 10 and 11
 - Windows Server 2016
 - PowerShell 5.1.18362.628 or later
 - Tests require [Pester](https://github.com/pester/Pester)
@@ -196,13 +196,14 @@ To resolve:
 https://community.spiceworks.com/topic/2300404-can-t-create-office365-contact-object-conflict
 
 1. `Install-Module -Name AzureAD -AllowClobber -Scope AllUsers`
-2. 
+2. `Install-Module -Name MSOnline`
+3. 
 ```
 Get-MsolContact -All | ? {$_.EmailAddress -eq "Email@gmail.com"} |fl Objectid
 ObjectId : cceb6517-000e-4a67-8b0b-67840800c96b
 ```
-3. `Get-AzureADObjectByObjectId -objectid cceb6517-000e-4a67-8b0b-67840800c96b`
-4. `Remove-AzureADContact -objectid cceb6517-000e-4a67-8b0b-67840800c96b`
+4. `Get-AzureADObjectByObjectId -objectid cceb6517-000e-4a67-8b0b-67840800c96b`
+5. `Remove-AzureADContact -objectid cceb6517-000e-4a67-8b0b-67840800c96b`
 
 # Support
 This software is Apache 2.0 license and the source is therefore freely available.
@@ -211,3 +212,4 @@ To ask questions and open issues and download the latest release, see:
 https://github.com/gracecode-org/breeze-outlook-sync/issues
 
 
+  Get-MsolContact -All | ? {$_.EmailAddress -eq "kellyg@smmpa.org"} |fl Objectid
