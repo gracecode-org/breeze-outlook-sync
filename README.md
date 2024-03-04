@@ -202,8 +202,8 @@ https://community.spiceworks.com/topic/2300404-can-t-create-office365-contact-ob
 Get-MsolContact -All | ? {$_.EmailAddress -eq "Email@gmail.com"} |fl Objectid
 ObjectId : cceb6517-000e-4a67-8b0b-67840800c96b
 ```
-4. `Get-AzureADObjectByObjectId -objectid 432764c6-4e51-477d-847f-401a01ac3527`
-5. `Remove-AzureADContact -objectid 432764c6-4e51-477d-847f-401a01ac3527`
+4. `Get-AzureADObjectByObjectId -objectid cceb6517-000e-4a67-8b0b-67840800c96b`
+5. `Remove-AzureADContact -objectid cceb6517-000e-4a67-8b0b-67840800c96b`
 
 # Support
 This software is Apache 2.0 license and the source is therefore freely available.
