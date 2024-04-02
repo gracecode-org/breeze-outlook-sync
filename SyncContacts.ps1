@@ -141,17 +141,25 @@ if($test) {
     "Trying to establish a connection to Exchange..."
 }
 
+# There are three authentication options supported in order:
+# Certificate File and Password (a pfx file), used primarily for linux 
+# Certificate Thumbprint, used for Windows.
+# Username and Password (This is no longer valid and has been removed.)
+
 $Exchange = [Exchange]::new(
     $Config.cfg.Exchange.Connection.URI, 
-    $Config.cfg.Exchange.Connection.username, 
-    $Config.cfg.Exchange.Connection.password, 
     $Config.cfg.Exchange.groupEmailDomain,
     $BreezeCache,
-    $force,
-    $Config.cfg.Exchange.Connection.certThumbprint,
-    $Config.cfg.Exchange.Connection.appId,
-    $Config.cfg.Exchange.Connection.organization
+    $force
     )
+
+if($Config.cfg.Exchange.Connection.psobject.properties.name -contains 'certThumbprint') {
+    $Exchange.ConnectWithCertificateThumbprint($Config.cfg.Exchange.Connection.appId, $Config.cfg.Exchange.Connection.organization, 
+        $Config.cfg.Exchange.Connection.certThumbprint)
+} else {
+    $Exchange.ConnectWithCertificateFile($Config.cfg.Exchange.Connection.appId, $Config.cfg.Exchange.Connection.organization, 
+        $Config.cfg.Exchange.Connection.certFilePath, $Config.cfg.Exchange.Connection.certFilePassword)
+}
 
 if($test) {
     "  Connected!"

@@ -7,8 +7,6 @@
     "Exchange": {
         "Connection": {
             "URI": "https://outlook.office365.com/powershell-liveid/",
-            "username": "mydomain.org\\myusername@mydomain.org",
-            "password": "mypassword",
             "certThumbprint": "12345678910B535F1F27A88C9F8374849F16E2B0",
             "appId": "abc12345-faee-4ff7-b980-d530c8059539",
             "organization": "mydomain.onmicrosoft.com"        },
@@ -21,7 +19,8 @@
         },
         "SyncSettings": {
             "TagsToSync": ["Test Tag1", "Test Tag2"],
-            "TagsToSkip": ["Big Tag", "Another Big Tag"]
+            "TagsToSkip": ["Big Tag", "Another Big Tag"],
+            "MaxTagPersons": 100
         }
     }
 
