@@ -24,15 +24,28 @@ class Exchange {
     $Connected = $false
 
 
-    Exchange([string] $connectionUri, [string] $user, [string] $password, 
-      [string] $groupEmailDomain, [BreezeCache] $breezeCache, [boolean] $force, [string] $certThumbprint, [string] $appId, [string] $org) {
-        [Logger]::Write("Connecting to Exchange...", $true)
+    Exchange([string] $connectionUri, [string] $groupEmailDomain, [BreezeCache] $breezeCache, [boolean] $force) {
 
-        Connect-ExchangeOnline -CertificateThumbPrint $certThumbprint -AppID $appId -Organization $org
-        $this.Connected = $true
         $this.GroupEmailDomain = $groupEmailDomain
         $this.BreezeCache = $breezeCache
         $this.Force = $force
+    }
+
+    ConnectWithCertificateFile([string] $appId, [string] $org, [string] $certFilePath, [string] $certPassword) {
+        [Logger]::Write("Connecting to Exchange...", $true)
+
+        # Connect-ExchangeOnline -CertificateThumbPrint $certThumbprint -AppID $appId -Organization $org
+        $certPasswordSecure = (ConvertTo-SecureString -String $certPassword -AsPlainText -Force)
+        
+        Connect-ExchangeOnline -CertificateFilePath $certFilePath -CertificatePassword $certPasswordSecure -AppID $appId -Organization $org
+        $this.Connected = $true
+    }
+
+    ConnectWithCertificateThumbprint([string] $appId, [string] $org, [string] $certThumbprint) {
+        [Logger]::Write("Connecting to Exchange...", $true)
+
+        Connect-ExchangeOnline -CertificateThumbPrint $certThumbprint -AppID $appId -Organization $org
+        $this.Connected = $true        
     }
 
     [PSObject] GetDistributionGroups() {

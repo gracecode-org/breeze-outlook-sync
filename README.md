@@ -152,6 +152,7 @@ This utility has been tested with:
 
 # config.json
 
+See the examples directory for templates.
 
 # References
 
