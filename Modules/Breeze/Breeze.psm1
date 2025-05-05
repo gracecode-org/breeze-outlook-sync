@@ -284,12 +284,9 @@ class Breeze {
         # manually iterate locally.
         $searchEmail = $email
         $idx = $email.LastIndexOf("_")
-        [Logger]::Write(" Index: " + $idx, $true, 2)
         if ($idx -gt 0) {
             $searchEmail = $email.Substring($idx + 1)
-            [Logger]::Write(" Substring: " + $email.Substring($idx), $true, 2)
         }
-        [Logger]::Write(" SearchEmail: " + $searchEmail, $true, 2)
 
         $emailFieldId = [Person]::GetProfileFieldId($this.GetProfileFields(), "Contact", "Email")
         $endpoint = $this.ENDPOINTS.PEOPLE + '?details=1&filter_json={"' + $emailFieldId + '":"' + $searchEmail + '"}'
