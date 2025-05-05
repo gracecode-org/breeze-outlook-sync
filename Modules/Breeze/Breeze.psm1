@@ -277,17 +277,33 @@ class Breeze {
 
 
     [Person[]] GetPersonsByEmail([string] $email) {
+        [Logger]::Write("GetPersonsByEmail: " + $email, $true, 2)
+
+        # Breeze has a bug where any email with an underscore can't be searched.
+        # Instead search for last underscore and search for the portion remaining and 
+        # manually iterate locally.
+        $searchEmail = $email
+        $idx = $email.LastIndexOf("_")
+        [Logger]::Write(" Index: " + $idx, $true, 2)
+        if ($idx -gt 0) {
+            $searchEmail = $email.Substring($idx + 1)
+            [Logger]::Write(" Substring: " + $email.Substring($idx), $true, 2)
+        }
+        [Logger]::Write(" SearchEmail: " + $searchEmail, $true, 2)
+
         $emailFieldId = [Person]::GetProfileFieldId($this.GetProfileFields(), "Contact", "Email")
-        $endpoint = $this.ENDPOINTS.PEOPLE + '?details=1&filter_json={"' + $emailFieldId + '":"' + $email + '"}'
+        $endpoint = $this.ENDPOINTS.PEOPLE + '?details=1&filter_json={"' + $emailFieldId + '":"' + $searchEmail + '"}'
         Pause
         $response = Invoke-WebRequest -Uri $endpoint  -Method Get -Headers $this.Headers
         [Person[]] $persons = [Person]::ToPersons($this.GetProfileFieldsAsJSON(), $response.Content, $false)
+        [Logger]::Write(" ToPersons: " + $persons, $true, 2)
         
         # Filter out any persons where teh email isn't primary
         $primaryEmailPersons = [System.Collections.ArrayList]::new()
 
         foreach($person in $persons) {
             [string] $primaryEmail = $person.GetFirstPrimaryEmail()
+            [Logger]::Write(" GetFirstPrimaryEmail: " + $primaryEmail, $true, 2)
             
             if ($primaryEmail -eq $email) {
                 $primaryEmailPersons.Add($person)
